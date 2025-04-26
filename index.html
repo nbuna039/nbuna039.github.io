@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maimai Slide Timing Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      padding: 30px;
+      color: #333;
+    }
+    h1 {
+      color: #5c6bc0;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 0.95em;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .input-inline {
+      display: inline-block;
+      margin-right: 20px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="number"], input[type="text"] {
+      padding: 8px 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 180px;
+    }
+    button {
+      background-color: #5c6bc0;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #3f51b5;
+    }
+    pre {
+      background-color: #e8eaf6;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 1em;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Maimai Slide Timing Calculator</h1>
+  <p>This is a tool I have made that mathematically converts a FESTiVAL slide into separate slides for conversion to FiNALE. Please note, at the moment this tool is only able to convert slides into even segments. However, as slides vary in trace distance/time, the tool will sometimes provide slide segments which are not actually of the same length due to the distance. Additionally, at the moment the "Full Slide" option does not properly support slides which are initiated with a break (e.g. 1b-4) or Grand V slides (e.g. 1V35) If you are trying to convert these slides, either remove the break and add them back later, or use the Segments section on the right. If there are any other issues or if you would like to assist with this tool, please reach out to @n_buna on discord.</p>
+
+  <div class="input-group">
+    <label for="bpmInput">BPM (Required):</label><br />
+    <input type="number" id="bpmInput" placeholder="e.g. 120" />
+  </div>
+
+  <div class="input-group">
+    <div class="input-inline">
+      <label for="traceInput">Full Slide:</label><br />
+      <input type="text" id="traceInput" placeholder="e.g. 1-3-5[4:1]" />
+    </div>
+    <div class="input-inline">
+      <strong style="display: inline-block; margin: 25px 10px 0 10px;">OR</strong>
+    </div>
+    <div class="input-inline">
+      <label for="segmentInput">Segments:</label><br />
+      <input type="number" id="segmentInput" placeholder="e.g. 3" /><br />
+      <label for="slideSpeedInput">Slide Speed:</label><br />
+      <input type="text" id="slideSpeedInput" placeholder="e.g. [4:1]" />
+    </div>
+  </div>
+
+  <button onclick="calculateSlide()">Calculate</button>
+  <pre id="result"></pre>
+
+  <script>
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    function toFraction(decimal) {
+      const tolerance = 1.0E-6;
+      let h1 = 1, h2 = 0;
+      let k1 = 0, k2 = 1;
+      let b = decimal;
+      do {
+        let a = Math.floor(b);
+        let aux = h1; h1 = a * h1 + h2; h2 = aux;
+        aux = k1; k1 = a * k1 + k2; k2 = aux;
+        b = 1 / (b - a);
+      } while (Math.abs(decimal - h1 / k1) > decimal * tolerance);
+      return [h1, k1];
+    }
+
+    function parseSlide(slide) {
+      const match = slide.match(/([\d<vVqQpPzs>-]+)\[(\d+):(\d+)]/);
+      if (!match) return null;
+
+      const full = match[1];
+      const points = full.match(/\d+/g);
+      const symbols = full.match(/[<vVqQpPzs>-]+/g) || [];
+
+      const segments = points.length - 1;
+      return {
+        points,
+        symbols,
+        A: segments,
+        C: parseInt(match[2], 10),
+        B: parseInt(match[3], 10),
+      };
+    }
+
+    function calculateSlide() {
+      const traceInput = document.getElementById('traceInput').value.trim();
+      const bpm = parseFloat(document.getElementById('bpmInput').value.trim());
+      const segments = parseInt(document.getElementById('segmentInput').value.trim());
+      const slideSpeed = document.getElementById('slideSpeedInput').value.trim();
+
+      const resultElement = document.getElementById('result');
+
+      // Fallback Mode
+      if (!traceInput && segments && slideSpeed) {
+        const slideMatch = slideSpeed.match(/\[(\d+):(\d+)]/);
+        if (!slideMatch) {
+          resultElement.textContent = 'Invalid slide speed format.';
+          return;
+        }
+
+        const C = parseInt(slideMatch[1], 10);
+        const B = parseInt(slideMatch[2], 10);
+        const A = segments;
+
+        let D = B / A;
+        let [num1, den1] = toFraction(D);
+        let F = C * den1;
+        let G = D * den1;
+
+        let output = `[${F}:${G}]\n`;
+
+        let K = bpm;
+        let L = F;
+        let M = G;
+
+        for (let i = 1; i < A; i++) {
+          let N = M * (4 / L);
+          let O = ((N + 1) * 60) / K;
+          let P = parseFloat((60 / O).toFixed(10));
+
+          let Q = (N * 60) / K;
+          let R = (P * Q) / 60;
+          let [num2, den2] = toFraction(R);
+          let S = den2 * 4;
+          let T = num2;
+
+          output += `[${P}#${S}:${T}]\n`;
+
+          K = P;
+          L = S;
+          M = T;
+        }
+
+        resultElement.textContent = output.trim();
+        return;
+      }
+
+      // Full Slide Mode
+      const parsed = parseSlide(traceInput);
+      if (!parsed) {
+        resultElement.textContent = 'Invalid slide format.';
+        return;
+      }
+
+      const { points, symbols, A, B, C } = parsed;
+      let output = '';
+
+      let D = B / A;
+      let [num1, den1] = toFraction(D);
+      let F = C * den1;
+      let G = D * den1;
+
+      output += `${points[0]}${symbols[0]}${points[1]}[${F}:${G}]`;
+
+      let K = bpm;
+      let L = F;
+      let M = G;
+
+      for (let i = 1; i < points.length - 1; i++) {
+        let N = M * (4 / L);
+        let O = ((N + 1) * 60) / K;
+        let P = parseFloat((60 / O).toFixed(10));
+
+        let Q = (N * 60) / K;
+        let R = (P * Q) / 60;
+        let [num2, den2] = toFraction(R);
+        let S = den2 * 4;
+        let T = num2;
+
+        output += `\`${points[i]}?${symbols[i]}${points[i + 1]}[${P}#${S}:${T}]`;
+
+        K = P;
+        L = S;
+        M = T;
+      }
+
+      resultElement.textContent = output;
+    }
+  </script>
+</body>
+</html>

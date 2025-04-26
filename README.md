@@ -1,2 +1,4 @@
 # nbuna039.github.io
-a tool for converting festival slides for finale
+This is a tool I have made that mathematically converts a FESTiVAL slide into separate slides for conversion to FiNALE. Please note, at the moment this tool is only able to convert slides into even segments. However, as slides vary in trace distance/time, the tool will sometimes provide slide segments which are not actually of the same length due to the distance. Additionally, at the moment the "Full Slide" option does not properly support slides which are initiated with a break (e.g. 1b-4) or Grand V slides (e.g. 1V35) If you are trying to convert these slides, either remove the break and add them back later, or use the Segments section on the right. If there are any other issues or if you would like to assist with this tool, please reach out to @n_buna on discord.
+
+For greater understanding of Simai notation, please visit https://w.atwiki.jp/simai/pages/1003.html

@@ -62,6 +62,35 @@
       font-size: 1em;
       white-space: pre-wrap;
     }
+
+    /* Added FAQ styles */
+    .faq-section {
+      margin-top: 40px;
+    }
+    .faq-section h2 {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .faq-item {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .faq-question {
+      padding: 15px;
+      background: #e8eaf6;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .faq-answer {
+      padding: 15px;
+      display: none;
+      background: #f5f5f5;
+    }
   </style>
 </head>
 <body>
@@ -214,7 +243,7 @@
         let S = den2 * 4;
         let T = num2;
 
-        output += `\`${points[i]}?${symbols[i]}${points[i + 1]}[${P}#${S}:${T}]`;
+        output += `${points[i]}?${symbols[i]}${points[i + 1]}[${P}#${S}:${T}]`;
 
         K = P;
         L = S;
@@ -223,6 +252,53 @@
 
       resultElement.textContent = output;
     }
+
+    // FAQ toggling script
+    document.addEventListener('DOMContentLoaded', function() {
+      const questions = document.querySelectorAll('.faq-question');
+      questions.forEach(q => {
+        q.addEventListener('click', () => {
+          const answer = q.nextElementSibling;
+          answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
+        });
+      });
+    });
   </script>
+
+  <!-- FAQ Section (ADDED) -->
+  <div class="faq-section">
+    <h2>FAQ's</h2>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. I'm getting "[NaN#NaN:NaN]" after hitting the Calculate button?</div>
+      <div class="faq-answer">A. The most common reason for this is because a BPM has not been entered.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. I'm getting "Invalid slide format."?</div>
+      <div class="faq-answer">
+        <p>A. Please ensure you are not doing any break slides (e.g. 1b-3-5b[4:1] / 1b-3-5[4:1]b])</p>
+        <p>OR</p>
+        <p>A. Please ensure you are following Simai notation (<a href="https://w.atwiki.jp/simai/pages/1003.html" target="_blank">View Here</a>).</p>
+        <p>If you are trying to do a slider which is not Simai notation (e.g. 1c3c7[4:1]) this will not work.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. The slides the calculator are outputting are not working when used in Majdata. What should I do?</div>
+      <div class="faq-answer">A. If this is not working, please try using the segments feature instead and entering it individually.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. What are "Segments"?</div>
+      <div class="faq-answer">A. Segments are the individual parts of slides. For an example, in the slide 1-3-5[4:1], there is made up of two slides. The first slide, from 1 - 3 and then the last slide from 3 - 5. An easy way to determine how many segments a slide has is to count the amount of symbols between the numbers. For example, in the slide 1-3, there is only one connecting "-" symbol. In the slide 1-3-5-7, there are three connecting "-" symbols.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question">Q. What if the slide is defined by wait time or trace time in seconds?</div>
+      <div class="faq-answer">A. lol (I do not have any intention to implement this. If anyone actually uses this often, reach out to me on discord @n_buna and I will add it).</div>
+    </div>
+
+  </div>
 </body>
 </html>
